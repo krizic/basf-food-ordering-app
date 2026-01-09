@@ -1,0 +1,11 @@
+{
+    "prisma.pinToPrisma6": true,
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "local",
+            "database": "./backend/prisma.dev.db"
+        }
+    ]
+}

@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model MenuItem {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Decimal
+  category    String
+  imageUrl    String?
+  isAvailable Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  options     MenuOption[]
+  orders      OrderItem[]
+}
+
+model MenuOption {
+  id        String   @id @default(cuid())
+  name      String
+  choices   String   // JSON Array of {name: string, priceDelta: decimal}
+  isRequired Boolean  @default(false)
+  maxChoices Int?
+  menuItem  MenuItem @relation(fields: [menuItemId], references: [id])
+  menuItemId String
+}
+
+model Order {
+  id            String   @id @default(cuid())
+  orderNumber   String   @unique
+  customerEmail String?
+  customerPhone String?
+  deliveryAddress String   // JSON {street, city, postalCode, instructions}
+  status        String   @default("PENDING")
+  subtotal      Decimal
+  tax           Decimal
+  deliveryFee   Decimal
+  discount      Decimal  @default(0)
+  discountCode  String?
+  total         Decimal
+  specialInstructions String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  items         OrderItem[]
+}
+
+model OrderItem {
+  id          String   @id @default(cuid())
+  order       Order    @relation(fields: [orderId], references: [id])
+  orderId     String
+  menuItem    MenuItem @relation(fields: [menuItemId], references: [id])
+  menuItemId  String
+  quantity    Int
+  unitPrice   Decimal
+  totalPrice  Decimal
+  customizations String   // JSON Store selected options
+}
+
+model DiscountCode {
+  id            String   @id @default(cuid())
+  code          String   @unique
+  description   String?
+  discountType  String   // 'percentage' or 'fixed'
+  discountValue Decimal  // percentage (0-100) or fixed amount
+  minOrderValue Decimal? // minimum order value to apply discount
+  maxUses       Int?     // maximum number of times code can be used
+  usedCount     Int      @default(0)
+  expiresAt     DateTime?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
